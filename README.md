@@ -73,7 +73,7 @@ sh azul-jdk-xray.sh
 You can run the tool without downloading it first. As with any script, review its source before running it.
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/AzulSystems/azul-jdk-xray/main/macos-linux/azul-jdk-xray.sh | sh
+(script=$(curl -fsSL https://raw.githubusercontent.com/AzulSystems/azul-jdk-xray/main/macos-linux/azul-jdk-xray.sh) && printf '%s\n' "$script" | sh)
 ```
 
 or, if `curl` is not installed:
