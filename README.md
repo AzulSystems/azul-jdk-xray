@@ -32,10 +32,12 @@ Note that phase 2 runs whenever phase 1 found nothing **outdated**, not whenever
 
 ## Run on Windows
 
-**File:** `windows/azul-jdk-xray.ps1`
-**Requires:** Windows PowerShell 5.1, built into Windows 10 and 11.
+* **File:** `windows/azul-jdk-xray.ps1`
+* **Requires:** Windows PowerShell 5.1, built into Windows 10 and 11.
 
 ### Run
+
+Download the script from the [windows folder](windows/) and then run it in PowerShell:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File azul-jdk-xray.ps1
@@ -55,10 +57,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubus
 
 ## Run on macOS and Linux
 
-**File:** `macos-linux/azul-jdk-xray.sh`
-**Requires:** any POSIX shell.
+* **File:** `macos-linux/azul-jdk-xray.sh`
+* **Requires:** any POSIX shell.
 
 ### Run
+
+Download the script from the [macOS and Linux folder](macos-linux/) and then run it in a shell:
 
 ```sh
 sh azul-jdk-xray.sh
