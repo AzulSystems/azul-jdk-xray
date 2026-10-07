@@ -130,3 +130,12 @@ In order of preference:
 - **MM**: The tool's major version. Only changes in case of a major overhaul. 0 indicates a pre-production build. 1 or higher indicates a release build.
 - **VV**: Version of this tool. Changes when there are updates to the code itself - improvements, bug fixes in the code base, etc.
 - **TV**: Table version. Bumps up every time the version table is updated.
+
+---
+
+## License
+
+Copyright (c) 2026, Azul Systems, Inc. All rights reserved.
+
+Licensed under the BSD 3-Clause License. See [LICENSE](LICENSE) for the full
+text.

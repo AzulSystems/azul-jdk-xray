@@ -1,5 +1,9 @@
 # Azul JDK X-Ray Tool for Windows.
 # Version 1.0.0
+#
+# Copyright (c) 2026, Azul Systems, Inc. All rights reserved.
+# SPDX-License-Identifier: BSD-3-Clause
+# See the LICENSE file in the project root for the full license text.
 # Run:  powershell -ExecutionPolicy Bypass -File azul-jdk-xray.ps1
 # Exit: 0 - no exposure found | 1 - outdated Java found | 2 - undetermined | 3 no Java found
 

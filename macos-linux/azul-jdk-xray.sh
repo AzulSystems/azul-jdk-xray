@@ -1,6 +1,10 @@
 #!/bin/sh
 # Azul JDK X-Ray Tool for macOS / Linux.
 # Version 1.0.0
+#
+# Copyright (c) 2026, Azul Systems, Inc. All rights reserved.
+# SPDX-License-Identifier: BSD-3-Clause
+# See the LICENSE file in the project root for the full license text.
 # Run:  sh azul-jdk-xray.sh
 # Exit: 0 - no exposure found | 1 - outdated Java found | 2 - undetermined | 3 no Java found
 
