@@ -32,27 +32,56 @@ Note that phase 2 runs whenever phase 1 found nothing **outdated**, not whenever
 
 ## Run on Windows
 
-**File:** `windows/azul-jdk-xray.ps1`
-**Requires:** Windows PowerShell 5.1, built into Windows 10 and 11.
+* **File:** `windows/azul-jdk-xray.ps1`
+* **Requires:** Windows PowerShell 5.1, built into Windows 10 and 11.
 
 ### Run
+
+Download the script from the [windows folder](windows/) and then run it in PowerShell:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File azul-jdk-xray.ps1
 ```
 
+### Run without downloading
+
+You can run the tool without downloading it first. As with any script, review its source before running it.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/AzulSystems/azul-jdk-xray/main/windows/azul-jdk-xray.ps1 | iex"
+```
+
+(`irm` is `Invoke-RestMethod`, `iex` is `Invoke-Expression`.) The script runs in a child PowerShell process on purpose: the script calls `exit`, which would otherwise close your current PowerShell window when run through `iex`. The exit code of the child process is the tool's exit code.
+
 ---
 
 ## Run on macOS and Linux
 
-**File:** `macos-linux/azul-jdk-xray.sh`
-**Requires:** any POSIX shell.
+* **File:** `macos-linux/azul-jdk-xray.sh`
+* **Requires:** any POSIX shell.
 
 ### Run
+
+Download the script from the [macOS and Linux folder](macos-linux/) and then run it in a shell:
 
 ```sh
 sh azul-jdk-xray.sh
 ```
+
+### Run without downloading
+
+You can run the tool without downloading it first. As with any script, review its source before running it.
+
+```sh
+(script=$(curl -fsSL https://raw.githubusercontent.com/AzulSystems/azul-jdk-xray/main/macos-linux/azul-jdk-xray.sh) && printf '%s\n' "$script" | sh)
+```
+
+or, if `curl` is not installed:
+
+```sh
+wget -qO- https://raw.githubusercontent.com/AzulSystems/azul-jdk-xray/main/macos-linux/azul-jdk-xray.sh | sh
+```
+
 
 ## Detectable Java versions
 
