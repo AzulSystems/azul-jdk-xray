@@ -1,6 +1,6 @@
 #!/bin/sh
 # Azul JDK X-Ray Tool for macOS / Linux.
-# Version 1.0.0
+# Version 1.1.0
 #
 # Copyright (c) 2026, Azul Systems, Inc. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
@@ -19,9 +19,11 @@ NEXT_UPDATE="2026-10-20 (October CPU)"
 VERSION_TABLE="8:503 11:32.1 17:20.1 21:12.1 25:4.1 26:2.1 27:0"
 # ------------------------------------------------------------
 
-XRAY_VERSION="1.0.0"   # keep in step with the Version line at the top
-AZUL_CONTACT="https://www.azul.com/contact/"
+XRAY_VERSION="1.1.0"   # keep in step with the Version line at the top
+AZUL_CONTACT="https://www.azul.com/products/core/#contact"
 AZUL_DOWNLOADS="https://www.azul.com/downloads/"
+AZUL_GET_PATCHED="https://azul.com/get-patched"
+AZUL_RISK_ASSESSMENT="https://www.azul.com/jvm-vulnerability-risk-assessment/"
 
 # Color only when writing to a terminal. NO_COLOR (https://no-color.org)
 # turns it off, so piped and logged output stays plain text.
@@ -369,17 +371,18 @@ echo ""
 if [ "$FOUND_VULN" -eq 1 ]; then
     badge "$B_RED" "OUTDATED" "This host runs an outdated JDK. Update it now."
     echo ""
-    echo "The security flaws fixed since this release are publicly disclosed."
-    echo "Their CVE details and the source code of the fixes are published, so"
-    echo "attackers know exactly what to target. Every day without the update"
+    echo "The security flaws fixed since this release are publicly known."
+    echo "CVE details and the source code for each fix have been published; so"
+    echo "attackers know exactly what to target. Every day without updating"
     echo "adds to the risk."
     echo ""
-    echo "  ${C_BOLD}Secure Java across your enterprise:$C_OFF"
-    echo "    Azul has the solution, process and tools to do it at scale."
-    echo "    $C_URL$AZUL_CONTACT$C_OFF"
+    echo "  ${C_BOLD}Azul has the solution, process and tools to secure your$C_OFF"
+    echo "  ${C_BOLD}Java estate at scale:$C_OFF"
+    echo "    Get Patched Today"
+    echo "    $C_URL$AZUL_GET_PATCHED$C_OFF"
     echo ""
-    echo "  ${C_BOLD}Patch this machine right now:$C_OFF"
-    echo "    Download free Azul Zulu builds of OpenJDK (no commercial support)."
+    echo "  ${C_BOLD}To patch this machine right now download a free,$C_OFF"
+    echo "  ${C_BOLD}unsupported Azul Zulu build of OpenJDK:$C_OFF"
     echo "    $C_URL$AZUL_DOWNLOADS$C_OFF"
     echo ""
     exit 1
@@ -398,13 +401,15 @@ if [ "$N_PROBLEM" -gt 0 ]; then
     echo "unpatched, and files left behind by a removed install still carry the"
     echo "vulnerabilities of the version they came from."
     echo ""
-    link "Review your enterprise Java estate:" "$AZUL_CONTACT"
+    echo "  ${C_BOLD}Request a risk assessment of your enterprise Java estate.$C_OFF"
+    echo "    $C_URL$AZUL_RISK_ASSESSMENT$C_OFF"
     echo ""
     exit 2
 fi
 
 badge "$B_GRN" "UP TO DATE" "Your Java is up to date."
 echo ""
-link "Long-term enterprise Java support:" "$AZUL_CONTACT"
+echo "  ${C_BOLD}For long-term enterprise Java support, contact Azul:$C_OFF"
+echo "    $C_URL$AZUL_CONTACT$C_OFF"
 echo ""
 exit 0

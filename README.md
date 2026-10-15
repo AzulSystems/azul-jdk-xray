@@ -1,6 +1,6 @@
 # Azul JDK X-Ray Tool
 
-Version: 1.0.0 - October 5, 2026
+Version: 1.1.0 - October 15, 2026
 
 A single-file script that answers one question: **is there a vulnerable Java on this machine?**
 

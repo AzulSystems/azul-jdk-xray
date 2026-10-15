@@ -1,5 +1,5 @@
 # Azul JDK X-Ray Tool for Windows.
-# Version 1.0.0
+# Version 1.1.0
 #
 # Copyright (c) 2026, Azul Systems, Inc. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
@@ -26,9 +26,11 @@ $NewestKnown  = ($MinPatch.Keys | Measure-Object -Maximum).Maximum
 $KnownDepth   = 5        # depth limit for the standard-location pass
 $MaxDirs      = 400000   # backstop against a pathological filesystem
 
-$XRayVersion   = '1.0.0'   # keep in step with the Version line at the top
-$AzulContact   = 'https://www.azul.com/contact/'
-$AzulDownloads = 'https://www.azul.com/downloads/'
+$XRayVersion   = '1.1.0'   # keep in step with the Version line at the top
+$AzulContact        = 'https://www.azul.com/products/core/#contact'
+$AzulDownloads      = 'https://www.azul.com/downloads/'
+$AzulGetPatched     = 'https://azul.com/get-patched'
+$AzulRiskAssessment = 'https://www.azul.com/jvm-vulnerability-risk-assessment/'
 
 # Color only when writing to a console. NO_COLOR (https://no-color.org)
 # turns it off, so redirected and logged output stays plain text.
@@ -388,17 +390,18 @@ Write-Host ''
 if ($script:Vuln) {
     Write-Badge 'DarkRed' 'White' 'OUTDATED' 'This host runs an outdated JDK. Update it now.'
     Write-Host ''
-    Write-Host 'The security flaws fixed since this release are publicly disclosed.'
-    Write-Host 'Their CVE details and the source code of the fixes are published, so'
-    Write-Host 'attackers know exactly what to target. Every day without the update'
+    Write-Host 'The security flaws fixed since this release are publicly known.'
+    Write-Host 'CVE details and the source code for each fix have been published so'
+    Write-Host 'attackers know exactly what to target. Every day without updating'
     Write-Host 'adds to the risk.'
     Write-Host ''
-    Write-Out '  Secure Java across your enterprise:' ''
-    Write-Host '    Azul has the solution, process and tools to do it at scale.'
-    Write-Out "    $AzulContact" 'Cyan'
+    Write-Out '  Azul has the solution, process and tools to secure your' ''
+    Write-Out '  Java estate at scale:' ''
+    Write-Host '    Get Patched Today'
+    Write-Out "    $AzulGetPatched" 'Cyan'
     Write-Host ''
-    Write-Out '  Patch this machine right now:' ''
-    Write-Host '    Download free Azul Zulu builds of OpenJDK (no commercial support).'
+    Write-Out '  To patch this machine right now download a free,' ''
+    Write-Out '  unsupported Azul Zulu build of OpenJDK:' ''
     Write-Out "    $AzulDownloads" 'Cyan'
     Write-Host ''
     exit 1
@@ -417,13 +420,15 @@ if ($script:Problems.Count -gt 0) {
     Write-Host 'unpatched, and files left behind by a removed install still carry the'
     Write-Host 'vulnerabilities of the version they came from.'
     Write-Host ''
-    Write-Link 'Review your enterprise Java estate:' $AzulContact
+    Write-Out '  Request a risk assessment of your enterprise Java estate.' ''
+    Write-Out "    $AzulRiskAssessment" 'Cyan'
     Write-Host ''
     exit 2
 }
 
 Write-Badge 'DarkGreen' 'White' 'UP TO DATE' 'Your Java is up to date.'
 Write-Host ''
-Write-Link 'Long-term enterprise Java support:' $AzulContact
+Write-Out '  For long-term enterprise Java support, contact Azul:' ''
+Write-Out "    $AzulContact" 'Cyan'
 Write-Host ''
 exit 0
