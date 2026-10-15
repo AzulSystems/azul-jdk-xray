@@ -1,0 +1,44 @@
+# Line endings are pinned here rather than left to each person's local
+# core.autocrlf. Without this file, what someone ends up with depends on how
+# their own git is configured, and the shell script in particular is only
+# correct one way.
+#
+# This covers both routes people get the tool by:
+#   git clone            -> checkout applies these rules
+#   "Download ZIP"       -> git archive applies these rules too (verified)
+#
+# It does NOT cover a raw single-file download (raw.githubusercontent.com),
+# which always serves the blob exactly as stored, i.e. LF. That is harmless:
+# PowerShell reads LF scripts without complaint, and the shell script wants
+# LF anyway.
+
+* text=auto
+
+# Must be LF. /bin/sh treats a trailing carriage return as part of each token,
+# so a CRLF copy does not parse: the shebang resolves to "/bin/sh\r" and every
+# `for ... do` is a syntax error.
+*.sh  text eol=lf
+
+# Windows-only. PowerShell reads either, so this is the platform convention
+# rather than a correctness requirement.
+*.ps1 text eol=crlf
+
+# LF keeps diffs clean across platforms.
+*.md           text eol=lf
+LICENSE        text eol=lf
+.gitattributes text eol=lf
+.gitignore     text eol=lf
+.editorconfig  text eol=lf
+
+# Never transform these.
+*.tar.gz binary
+*.tgz    binary
+*.zip    binary
+*.jar    binary
+*.png    binary
+*.jpg    binary
+*.pdf    binary
+
+# Keep editor config out of the downloadable archive.
+.editorconfig export-ignore
+.gitattributes export-ignore
