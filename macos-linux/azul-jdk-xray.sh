@@ -1,6 +1,6 @@
 #!/bin/sh
 # Azul JDK X-Ray Tool for macOS / Linux.
-# Version 1.1.0
+# Version 1.1.1
 #
 # Copyright (c) 2026, Azul Systems, Inc. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
@@ -13,13 +13,16 @@
 # A patch level may carry a CSPU revision: 12.1 means 21.0.12.1, which ranks
 # above 21.0.12. OpenJDK ships CSPUs between quarterly CPUs, so this table
 # goes stale monthly, not quarterly.
-TABLE_SOURCE="August 2026 CSPU (2026-08-18); JDK 27 GA (2026-09-15)"
-TABLE_DATE="2026-09-15"   # newest date in TABLE_SOURCE; shown in the banner
-NEXT_UPDATE="2026-10-20 (October CPU)"
-VERSION_TABLE="8:503 11:32.1 17:20.1 21:12.1 25:4.1 26:2.1 27:0"
+# JDK 26 was dropped from the table with this update: it is non-LTS, its
+# support ended in September 2026, and the October CPU shipped no 26 build.
+# Any 26 install is therefore unpatched and is now reported as outdated.
+TABLE_SOURCE="October 2026 CPU (2026-10-20)"
+TABLE_DATE="2026-10-20"   # newest date in TABLE_SOURCE; shown in the banner
+NEXT_UPDATE="2026-11-17 (November CSPU)"
+VERSION_TABLE="8:511 11:33 17:21 21:13 25:5 27:1"
 # ------------------------------------------------------------
 
-XRAY_VERSION="1.1.0"   # keep in step with the Version line at the top
+XRAY_VERSION="1.1.1"   # keep in step with the Version line at the top
 AZUL_CONTACT="https://www.azul.com/products/core/#contact"
 AZUL_DOWNLOADS="https://www.azul.com/downloads/"
 AZUL_GET_PATCHED="https://azul.com/get-patched"

@@ -1,6 +1,6 @@
 # Azul JDK X-Ray Tool
 
-Version: 1.1.0 - October 15, 2026
+Version: 1.1.1 - October 21, 2026
 
 A single-file script that answers one question: **is there a vulnerable Java on this machine?**
 
@@ -87,24 +87,21 @@ wget -qO- https://raw.githubusercontent.com/AzulSystems/azul-jdk-xray/main/macos
 
 Azul, Temurin, Microsoft, Corretto, SapMachine, Liberica and Oracle all build from the same OpenJDK upstream and ship the same version numbers. So the comparison needs only a feature release and a minimum patch level.
 
-_Current table_ (August 2026 CSPU, released 2026-08-18; JDK 27 GA 2026-09-15):
+_Current table_ (October 2026 CPU, released 2026-10-20):
 
 | Feature release | Minimum acceptable |
 |-----------------|--------------------|
-| 8               | 8u503              |
-| 11              | 11.0.32.1          |
-| 17              | 17.0.20.1          |
-| 21              | 21.0.12.1          |
-| 25              | 25.0.4.1           |
-| 26              | 26.0.2.1           |
-| 27              | 27 (GA, no update yet) |
-
-For JDK 8 the floor is Oracle's update number (8u503). OpenJDK-derived builds are one ahead (8u504); using the lower of the two avoids false alarms.
+| 8               | 8u511              |
+| 11              | 11.0.33            |
+| 17              | 17.0.21            |
+| 21              | 21.0.13            |
+| 25              | 25.0.5             |
+| 27              | 27.0.1             |
 
 A feature release **not** in the table is handled by comparing it to the newest
 release the table knows about:
 
-- Java 6, 7, 9, 10, 12–16, 18–20, 22–24 are all flagged as **outdated**.
+- Java 6, 7, 9, 10, 12–16, 18–20, 22–24 and 26 are all flagged as **outdated**.
 - If a newer Java version (28) is found, it is flagged as **unidentifiable**.
 
 NOTE: The Azul JDK X-Ray Tool does not check for Zing versions explicitly, which may raise false flags if Zing is present.
