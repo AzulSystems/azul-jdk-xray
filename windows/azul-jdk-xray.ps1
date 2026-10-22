@@ -1,5 +1,5 @@
 # Azul JDK X-Ray Tool for Windows.
-# Version 1.1.1
+# Version 1.2.0
 #
 # Copyright (c) 2026, Azul Systems, Inc. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
@@ -18,18 +18,36 @@ $ProgressPreference    = 'SilentlyContinue'
 # JDK 26 was dropped from the table with this update: it is non-LTS, its
 # support ended in September 2026, and the October CPU shipped no 26 build.
 # Any 26 install is therefore unpatched and is now reported as outdated.
-$TableSource = 'October 2026 CPU (2026-10-20)'
-$TableDate   = '2026-10-20'   # newest date in TableSource; shown in the banner
+$TableSource = 'OpenJDK out-of-band advisory for CVE-2026-91403 (2026-10-21)'
+$TableDate   = '2026-10-21'   # newest date in TableSource; shown in the banner
 $NextUpdate  = '2026-11-17 (November CSPU)'
-$MinPatch    = @{ 8 = '511'; 11 = '33'; 17 = '21'; 21 = '13'
-                  25 = '5'; 27 = '1' }
+$MinPatch    = @{ 8 = '511'; 11 = '33.0.2'; 17 = '21.0.2'; 21 = '13.0.2'
+                  25 = '5.0.2'; 27 = '1.0.2' }
+
+# ---- ZULU BUILD TABLE - UPDATE WITH EVERY AZUL RELEASE ----
+# Azul ships some fixes without changing the OpenJDK version: the eMudhra fix
+# of 2026-10-21 went out as Zulu 21.54.107 still reporting JAVA_VERSION
+# 21.0.13, identical to the vulnerable 21.54.105. A Zulu install therefore has
+# to be judged on its Zulu build number, not on JAVA_VERSION.
+#
+# Azul runs two supported tracks per release, PSU and CPU, and the CPU track
+# sits on a lower minor. Both are listed so neither is wrongly flagged.
+# The floor is the CA number; the SA build is one higher and also passes.
+$ZuluTable = @{
+    8  = @{ 98 = '0.107'; 97 = '0.110' }
+    11 = @{ 92 = '109';   91 = '112'   }
+    17 = @{ 70 = '111';   69 = '112'   }
+    21 = @{ 54 = '107';   53 = '112'   }
+    25 = @{ 38 = '107';   37 = '114'   }
+    27 = @{ 30 = '107' }
+}
 # ------------------------------------------------------------
 
 $NewestKnown  = ($MinPatch.Keys | Measure-Object -Maximum).Maximum
 $KnownDepth   = 5        # depth limit for the standard-location pass
 $MaxDirs      = 400000   # backstop against a pathological filesystem
 
-$XRayVersion   = '1.1.1'   # keep in step with the Version line at the top
+$XRayVersion   = '1.2.0'   # keep in step with the Version line at the top
 $AzulContact        = 'https://www.azul.com/products/core/#contact'
 $AzulDownloads      = 'https://www.azul.com/downloads/'
 $AzulGetPatched     = 'https://azul.com/get-patched'
@@ -123,7 +141,10 @@ function Read-JavaVersion([string]$JavaHome) {
                     Select-Object -First 1) -replace '^IMPLEMENTOR\s*=\s*"?([^"]*)"?.*$', '$1'
         if ($version) {
             if (-not $vendor) { $vendor = 'unknown' }
-            return @{ Version = $version.Trim(); Vendor = $vendor.Trim() }
+            # Azul puts the Zulu build in IMPLEMENTOR_VERSION. It is the only
+            # thing that moves when a fix ships without an OpenJDK change.
+            return @{ Version = $version.Trim(); Vendor = $vendor.Trim()
+                      Zulu = (Get-ZuluBuild $implVer) }
         }
     }
 
@@ -161,26 +182,51 @@ function Get-InferredFeature([string]$JavaHome) {
 
 # Split a version string into feature release and patch level.
 # Handles: 1.8.0_502 | 21.0.12 | 21.0.12+7 | 21.0.12.11.1 | 25
-# '12.1' -> 12001, '12' -> 12000, so a CSPU revision ranks above the CPU it
-# patches.
-function Get-VNum([string]$PatchLevel) {
-    $parts = $PatchLevel -split '\.'
-    $p = [int]$parts[0]
-    $s = if ($parts.Count -gt 1) { [int]$parts[1] } else { 0 }
-    return ($p * 1000 + $s)
+# True if dotted version $A is at or above dotted version $B. Components are
+# compared numerically left to right and a missing component counts as zero,
+# so 13 ranks below 13.0.2 while 14 ranks above it.
+function Test-VersionAtLeast([string]$A, [string]$B) {
+    $x = @($A -split '\.'); $y = @($B -split '\.')
+    for ($i = 0; $i -lt [Math]::Max($x.Count, $y.Count); $i++) {
+        $xi = if ($i -lt $x.Count -and $x[$i] -ne '') { [int]$x[$i] } else { 0 }
+        $yi = if ($i -lt $y.Count -and $y[$i] -ne '') { [int]$y[$i] } else { 0 }
+        if ($xi -gt $yi) { return $true }
+        if ($xi -lt $yi) { return $false }
+    }
+    return $true
 }
 
+# Pull "<major> <minor> <rest>" out of a Zulu build string, or $null.
+# Two formats are in the wild, confirmed against real installs:
+#   Java 9+ : Zulu21.54+107-CA          -> 21 54 107
+#   Java 8  : Zulu 8.98.0.107-CA-win64  -> 8 98 0.107
+function Get-ZuluBuild([string]$Text) {
+    if (-not $Text -or $Text -notmatch 'Zulu') { return $null }
+    if ($Text -match 'Zulu(\d+)\.(\d+)\+([\d.]+)') {
+        return @{ Major = [int]$Matches[1]; Minor = [int]$Matches[2]; Rest = $Matches[3] }
+    }
+    if ($Text -match 'Zulu (\d+)\.(\d+)\.([\d.]+)') {
+        return @{ Major = [int]$Matches[1]; Minor = [int]$Matches[2]; Rest = $Matches[3] }
+    }
+    return $null
+}
+
+# Split a version string into Feature and Rest, where Rest is everything after
+# the interim component, kept whole and dotted.
+# Handles: 1.8.0_511 | 21.0.13 | 21.0.13.0.2 | 21.0.13+9 | 21.0.12.1.101 | 27
+#
+# Rest is never truncated. An out-of-band fix can land as a fourth or fifth
+# component -- 21.0.13.0.2 carries the eMudhra fix and 21.0.13 does not -- so
+# every component has to survive to the comparison.
 function ConvertFrom-JavaVersion([string]$Version) {
     $v = ($Version -split '[+\-]')[0].Trim()
-    if ($v -match '^1\.(\d)\.0_(\d+)$')   { return @{ Feature = [int]$Matches[1]; Patch = [int]$Matches[2]; Sub = 0 } }
-    if ($v -match '^1\.(\d)(\.|$)')       { return @{ Feature = [int]$Matches[1]; Patch = 0; Sub = 0 } }
-    # Five or more components are vendor build numbers appended to the OpenJDK
-    # patch (Corretto 21.0.12.9.1), not a CSPU revision.
-    if ($v -match '^(\d+)\.(\d+)\.(\d+)\.(\d+)\.') { return @{ Feature = [int]$Matches[1]; Patch = [int]$Matches[3]; Sub = 0 } }
-    if ($v -match '^(\d+)\.(\d+)\.(\d+)\.(\d+)$')  { return @{ Feature = [int]$Matches[1]; Patch = [int]$Matches[3]; Sub = [int]$Matches[4] } }
-    if ($v -match '^(\d+)\.(\d+)\.(\d+)') { return @{ Feature = [int]$Matches[1]; Patch = [int]$Matches[3]; Sub = 0 } }
-    if ($v -match '^(\d+)\.(\d+)$')       { return @{ Feature = [int]$Matches[1]; Patch = 0; Sub = 0 } }
-    if ($v -match '^(\d+)$')              { return @{ Feature = [int]$Matches[1]; Patch = 0; Sub = 0 } }
+    if ($v -match '^1\.(\d)\.0_(\d+)$') { return @{ Feature = [int]$Matches[1]; Rest = $Matches[2] } }
+    if ($v -match '^1\.(\d)(\.|$)')      { return @{ Feature = [int]$Matches[1]; Rest = '0' } }
+    if ($v -match '^(\d+)\.(\d+)\.(.+)$') {
+        if ($Matches[3] -notmatch '^[0-9.]+$') { return $null }
+        return @{ Feature = [int]$Matches[1]; Rest = $Matches[3] }
+    }
+    if ($v -match '^(\d+)(\.\d+)?$')     { return @{ Feature = [int]$Matches[1]; Rest = '0' } }
     return $null
 }
 
@@ -211,6 +257,29 @@ function Test-Candidate([string]$Path) {
         return $false
     }
 
+    # A Zulu install is judged on its Zulu build number. Azul ships fixes that
+    # do not move the OpenJDK version, so JAVA_VERSION cannot separate a
+    # patched build from the vulnerable one it replaced.
+    if ($info.Zulu) {
+        $z = $info.Zulu
+        if ($ZuluTable.ContainsKey($z.Major)) {
+            $tracks = $ZuluTable[$z.Major]
+            if ($tracks.ContainsKey($z.Minor)) {
+                if (Test-VersionAtLeast $z.Rest $tracks[$z.Minor]) { return $false }
+                $script:Vuln = $true
+                return $true
+            }
+            $maxMinor = ($tracks.Keys | Measure-Object -Maximum).Maximum
+            if ($z.Minor -gt $maxMinor) {
+                [void]$script:Problems.Add("$p (Zulu $($z.Major).$($z.Minor).$($z.Rest) is newer than this script's data)")
+                return $false
+            }
+            $script:Vuln = $true
+            return $true
+        }
+        # Feature release absent from the Zulu table: fall through below.
+    }
+
     $parsed = ConvertFrom-JavaVersion $info.Version
     if (-not $parsed) {
         [void]$script:Problems.Add("$p (unparseable version string `"$($info.Version)`")")
@@ -218,7 +287,7 @@ function Test-Candidate([string]$Path) {
     }
 
     if ($MinPatch.ContainsKey($parsed.Feature)) {
-        if ((Get-VNum "$($parsed.Patch).$($parsed.Sub)") -ge (Get-VNum $MinPatch[$parsed.Feature])) {
+        if (Test-VersionAtLeast $parsed.Rest $MinPatch[$parsed.Feature]) {
             return $false
         }
         $script:Vuln = $true

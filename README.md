@@ -1,6 +1,6 @@
 # Azul JDK X-Ray Tool
 
-Version: 1.1.1 - October 21, 2026
+Version: 1.2.0 - October 22, 2026
 
 A single-file script that answers one question: **is there a vulnerable Java on this machine?**
 
@@ -87,16 +87,29 @@ wget -qO- https://raw.githubusercontent.com/AzulSystems/azul-jdk-xray/main/macos
 
 Azul, Temurin, Microsoft, Corretto, SapMachine, Liberica and Oracle all build from the same OpenJDK upstream and ship the same version numbers. So the comparison needs only a feature release and a minimum patch level.
 
-_Current table_ (October 2026 CPU, released 2026-10-20):
+_Current table_ (out-of-band fix for CVE-2026-91403, released 2026-10-21):
 
 | Feature release | Minimum acceptable |
 |-----------------|--------------------|
 | 8               | 8u511              |
-| 11              | 11.0.33            |
-| 17              | 17.0.21            |
-| 21              | 21.0.13            |
-| 25              | 25.0.5             |
-| 27              | 27.0.1             |
+| 11              | 11.0.33.0.2        |
+| 17              | 17.0.21.0.2        |
+| 21              | 21.0.13.0.2        |
+| 25              | 25.0.5.0.2         |
+| 27              | 27.0.1.0.2         |
+
+Azul Zulu is checked differently. A Zulu install is judged on its Zulu build number, taken from `IMPLEMENTOR_VERSION`.
+
+_Current Zulu builds_ (out-of-band fix, 2026-10-21). Azul runs two supported tracks per release; both are listed so neither is wrongly flagged. The floor is the CA build, and the SA build is one higher.
+
+| Feature release | CPU track | PSU track |
+|-----------------|-----------|-----------|
+| 8               | 8.97.0.110  | 8.98.0.107  |
+| 11              | 11.91.112   | 11.92.109   |
+| 17              | 17.69.112   | 17.70.111   |
+| 21              | 21.53.112   | 21.54.107   |
+| 25              | 25.37.114   | 25.38.107   |
+| 27              | —           | 27.30.107   |
 
 A feature release **not** in the table is handled by comparing it to the newest
 release the table knows about:

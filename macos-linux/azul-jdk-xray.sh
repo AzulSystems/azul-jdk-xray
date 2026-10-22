@@ -1,6 +1,6 @@
 #!/bin/sh
 # Azul JDK X-Ray Tool for macOS / Linux.
-# Version 1.1.1
+# Version 1.2.0
 #
 # Copyright (c) 2026, Azul Systems, Inc. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
@@ -16,13 +16,25 @@
 # JDK 26 was dropped from the table with this update: it is non-LTS, its
 # support ended in September 2026, and the October CPU shipped no 26 build.
 # Any 26 install is therefore unpatched and is now reported as outdated.
-TABLE_SOURCE="October 2026 CPU (2026-10-20)"
-TABLE_DATE="2026-10-20"   # newest date in TABLE_SOURCE; shown in the banner
+TABLE_SOURCE="OpenJDK out-of-band advisory for CVE-2026-91403 (2026-10-21)"
+TABLE_DATE="2026-10-21"   # newest date in TABLE_SOURCE; shown in the banner
 NEXT_UPDATE="2026-11-17 (November CSPU)"
-VERSION_TABLE="8:511 11:33 17:21 21:13 25:5 27:1"
+VERSION_TABLE="8:511 11:33.0.2 17:21.0.2 21:13.0.2 25:5.0.2 27:1.0.2"
+
+# ---- ZULU BUILD TABLE - UPDATE WITH EVERY AZUL RELEASE ----
+# Azul ships some fixes without changing the OpenJDK version: the eMudhra fix
+# of 2026-10-21 went out as Zulu 21.54.107 still reporting JAVA_VERSION
+# 21.0.13, identical to the vulnerable 21.54.105. A Zulu install therefore has
+# to be judged on its Zulu build number, not on JAVA_VERSION.
+#
+# <feature>:<minor>=<floor>,<minor>=<floor>
+# Azul runs two supported tracks per release, PSU and CPU, and the CPU track
+# sits on a lower minor. Both are listed so neither is wrongly flagged.
+# The floor is the CA number; the SA build is one higher and also passes.
+ZULU_TABLE="8:98=0.107,97=0.110 11:92=109,91=112 17:70=111,69=112 21:54=107,53=112 25:38=107,37=114 27:30=107"
 # ------------------------------------------------------------
 
-XRAY_VERSION="1.1.1"   # keep in step with the Version line at the top
+XRAY_VERSION="1.2.0"   # keep in step with the Version line at the top
 AZUL_CONTACT="https://www.azul.com/products/core/#contact"
 AZUL_DOWNLOADS="https://www.azul.com/downloads/"
 AZUL_GET_PATCHED="https://azul.com/get-patched"
@@ -57,45 +69,92 @@ trap 'rm -rf "$WORK"' EXIT HUP INT TERM
 
 # --- version table -----------------------------------------------------------
 
-# Split a version string into FEATURE, PATCH and SUB (the CSPU revision).
-# Handles: 1.8.0_503 | 21.0.12 | 21.0.12.1 | 21.0.12.1+1 | 21.0.12.9.1 | 27
+# Split a version string into FEATURE and REST, where REST is everything
+# after the interim component, kept whole and dotted.
+# Handles: 1.8.0_511 | 21.0.13 | 21.0.13.0.2 | 21.0.13+9 | 21.0.12.1.101 | 27
+#
+# REST is never truncated. An out-of-band fix can land as a fourth or fifth
+# component -- 21.0.13.0.2 carries the eMudhra fix and 21.0.13 does not -- so
+# every component has to survive to the comparison.
 parse_version() {
     v=${1%%+*}
     v=${v%%-*}
-    SUB=0
     case "$v" in
-        1.[0-9].0_*)  FEATURE=${v%%.0_*}; FEATURE=${FEATURE#1.}; PATCH=${v#*_} ;;
-        1.[0-9]*)     FEATURE=${v#1.};    FEATURE=${FEATURE%%.*}; PATCH=0 ;;
-        # Five or more components are vendor build numbers appended to the
-        # OpenJDK patch (Corretto 21.0.12.9.1), not a CSPU revision.
-        *.*.*.*.*)    FEATURE=${v%%.*}
-                      rest=${v#*.}
-                      PATCH=${rest#*.}
-                      PATCH=${PATCH%%.*} ;;
-        *.*.*.*)      FEATURE=${v%%.*}
-                      rest=${v#*.}; rest=${rest#*.}
-                      PATCH=${rest%%.*}
-                      SUB=${rest#*.}; SUB=${SUB%%.*} ;;
-        *.*.*)        FEATURE=${v%%.*}
-                      rest=${v#*.}
-                      PATCH=${rest#*.}
-                      PATCH=${PATCH%%.*} ;;
-        *.*)          FEATURE=${v%%.*}; PATCH=0 ;;
-        *)            FEATURE=$v;       PATCH=0 ;;
+        1.[0-9].0_*)  FEATURE=${v%%.0_*}; FEATURE=${FEATURE#1.}; REST=${v#*_} ;;
+        1.[0-9]*)     FEATURE=${v#1.};    FEATURE=${FEATURE%%.*}; REST=0 ;;
+        *.*)          FEATURE=${v%%.*}
+                      rest=${v#*.}                    # drop the feature
+                      case "$rest" in
+                          *.*) REST=${rest#*.} ;;     # drop the interim
+                          *)   REST=0 ;;
+                      esac ;;
+        *)            FEATURE=$v; REST=0 ;;
     esac
     case "$FEATURE" in ''|*[!0-9]*) return 1 ;; esac
-    case "$PATCH"   in ''|*[!0-9]*) return 1 ;; esac
-    case "$SUB"     in ''|*[!0-9]*) SUB=0 ;; esac
+    case "$REST"    in ''|*[!0-9.]*) return 1 ;; esac
     return 0
 }
 
-# "12.1" -> 12001, "12" -> 12000, so a CSPU revision ranks above the CPU it
-# patches. Leading zeros are stripped to avoid invalid octal literals.
-vnum() {
-    p=${1%%.*}; s=${1#*.}
-    [ "$s" = "$1" ] && s=0
-    p=${p#0}; s=${s#0}
-    printf '%s' $(( ${p:-0} * 1000 + ${s:-0} ))
+# True if dotted version $1 is at or above dotted version $2. Components are
+# compared numerically left to right and a missing component counts as zero,
+# so 13 ranks below 13.0.2 while 14 ranks above it.
+ver_ge() {
+    a=$1; b=$2
+    while [ -n "$a" ] || [ -n "$b" ]; do
+        case "$a" in *.*) ai=${a%%.*}; a=${a#*.} ;; *) ai=$a; a= ;; esac
+        case "$b" in *.*) bi=${b%%.*}; b=${b#*.} ;; *) bi=$b; b= ;; esac
+        [ -n "$ai" ] || ai=0
+        [ -n "$bi" ] || bi=0
+        [ "$ai" -gt "$bi" ] && return 0
+        [ "$ai" -lt "$bi" ] && return 1
+    done
+    return 0
+}
+
+# Echo "<major> <minor> <rest>" from a Zulu build string, or return non-zero.
+# Two formats are in the wild, confirmed against real installs:
+#   Java 9+ : Zulu21.54+107-CA          -> 21 54 107
+#   Java 8  : Zulu 8.98.0.107-CA-win64  -> 8 98 0.107
+zulu_build_in() {
+    case "$1" in *Zulu*) ;; *) return 1 ;; esac
+    z=$(printf '%s' "$1" | sed -n 's/.*Zulu\([0-9][0-9]*\)\.\([0-9][0-9]*\)+\([0-9][0-9.]*\).*/\1 \2 \3/p' | head -1)
+    [ -n "$z" ] || z=$(printf '%s' "$1" | sed -n 's/.*Zulu \([0-9][0-9]*\)\.\([0-9][0-9]*\)\.\([0-9][0-9.]*\).*/\1 \2 \3/p' | head -1)
+    [ -n "$z" ] || return 1
+    printf '%s' "$z"
+}
+
+# Echo the floor for one Zulu track, or return non-zero if that track is not
+# in the table.
+zulu_floor_for() {
+    for entry in $ZULU_TABLE; do
+        [ "${entry%%:*}" = "$1" ] || continue
+        OIFS=$IFS; IFS=,
+        for t in ${entry#*:}; do
+            IFS=$OIFS
+            if [ "${t%%=*}" = "$2" ]; then printf '%s' "${t#*=}"; return 0; fi
+            IFS=,
+        done
+        IFS=$OIFS
+    done
+    return 1
+}
+
+# Echo the highest Zulu minor known for a feature release, or 0 if none.
+# Used to tell "older than every track we know" from "newer than our data".
+zulu_max_minor() {
+    m=0
+    for entry in $ZULU_TABLE; do
+        [ "${entry%%:*}" = "$1" ] || continue
+        OIFS=$IFS; IFS=,
+        for t in ${entry#*:}; do
+            IFS=$OIFS
+            k=${t%%=*}
+            [ "$k" -gt "$m" ] && m=$k
+            IFS=,
+        done
+        IFS=$OIFS
+    done
+    printf '%s' "$m"
 }
 
 min_patch_for() {
@@ -155,9 +214,9 @@ read_version_from_libjvm() {
         v=${v%%\)*}
         case "$v" in
             # Legacy HotSpot numbering: 25.302-b08 is Java 8u302, 24.x is 7.
-            25.*-b*) printf '1.8.0_%s' "$(x=${v#25.}; printf '%s' "${x%%-*}")"; return 0 ;;
-            24.*-b*) printf '1.7.0_%s' "$(x=${v#24.}; printf '%s' "${x%%-*}")"; return 0 ;;
-            *)       printf '%s' "${v%%+*}"; return 0 ;;
+            25.*-b*) printf '1.8.0_%s|%s' "$(x=${v#25.}; printf '%s' "${x%%-*}")" "$s"; return 0 ;;
+            24.*-b*) printf '1.7.0_%s|%s' "$(x=${v#24.}; printf '%s' "${x%%-*}")" "$s"; return 0 ;;
+            *)       printf '%s|%s' "${v%%+*}" "$s"; return 0 ;;
         esac
     done
     return 1
@@ -168,32 +227,41 @@ read_version_from_libjvm() {
 # launcher, then the directory name.
 read_version() {
     h=$1
+    zb=
     if [ -f "$h/release" ]; then
         v=$(sed -n 's/^JAVA_VERSION="\{0,1\}\([^"]*\)"\{0,1\}.*/\1/p' "$h/release" 2>/dev/null | head -1)
         i=$(sed -n 's/^IMPLEMENTOR="\{0,1\}\([^"]*\)"\{0,1\}.*/\1/p' "$h/release" 2>/dev/null | head -1)
+        # Azul puts the Zulu build in IMPLEMENTOR_VERSION. It is the only
+        # thing that moves when a fix ships without an OpenJDK version change.
+        iv=$(sed -n 's/^IMPLEMENTOR_VERSION="\{0,1\}\([^"]*\)"\{0,1\}.*/\1/p' "$h/release" 2>/dev/null | head -1)
+        zb=$(zulu_build_in "$iv") || zb=
         if [ -n "$v" ]; then
-            printf '%s|%s' "$v" "${i:-unknown}"
+            printf '%s|%s|%s' "$v" "${i:-unknown}" "$zb"
             return 0
         fi
     fi
-    v=$(read_version_from_libjvm "$h")
+    s=$(read_version_from_libjvm "$h" 2>/dev/null)
+    v=${s%%|*}
     if [ -n "$v" ]; then
-        printf '%s|%s' "$v" "unknown (read from libjvm)"
+        [ -n "$zb" ] || zb=$(zulu_build_in "${s#*|}") || zb=
+        printf '%s|%s|%s' "$v" "unknown (read from libjvm)" "$zb"
         return 0
     fi
     if [ -x "$h/bin/java" ]; then
         # Match the 'version "X"' line rather than the first line: a set
         # JAVA_TOOL_OPTIONS or _JAVA_OPTIONS prints a "Picked up ..." banner
         # ahead of it, which would otherwise swallow the result.
-        v=$("$h/bin/java" -version 2>&1 | sed -n 's/.*version "\([^"]*\)".*/\1/p' | head -1)
+        out=$("$h/bin/java" -version 2>&1)
+        v=$(printf '%s\n' "$out" | sed -n 's/.*version "\([^"]*\)".*/\1/p' | head -1)
+        [ -n "$zb" ] || zb=$(zulu_build_in "$out") || zb=
         if [ -n "$v" ]; then
-            printf '%s|%s' "$v" "unknown (read from java -version)"
+            printf '%s|%s|%s' "$v" "unknown (read from java -version)" "$zb"
             return 0
         fi
     fi
     v=$(basename "$h" | sed -n 's/.*\(1\.[4-8]\.0_[0-9]\{1,\}\).*/\1/p')
     if [ -n "$v" ]; then
-        printf '%s|%s' "$v" "unknown (version inferred from path)"
+        printf '%s|%s|%s' "$v" "unknown (version inferred from path)" ""
         return 0
     fi
     return 1
@@ -234,7 +302,31 @@ classify() {
     fi
 
     ver=${info%%|*}
-    vendor=${info#*|}
+    rest_fields=${info#*|}
+    vendor=${rest_fields%%|*}
+    zbuild=${rest_fields#*|}
+    [ "$zbuild" = "$vendor" ] && zbuild=
+
+    # A Zulu install is judged on its Zulu build number. Azul ships fixes that
+    # do not move the OpenJDK version, so JAVA_VERSION cannot separate a
+    # patched build from the vulnerable one it replaced.
+    if [ -n "$zbuild" ]; then
+        zmaj=${zbuild%% *}; zr=${zbuild#* }; zmin=${zr%% *}; zrest=${zr#* }
+        if zfloor=$(zulu_floor_for "$zmaj" "$zmin"); then
+            ver_ge "$zrest" "$zfloor" && return 0
+            return 1
+        fi
+        zmax=$(zulu_max_minor "$zmaj")
+        if [ "$zmax" != "0" ]; then
+            if [ "$zmin" -gt "$zmax" ]; then
+                printf '%s\n' "$h (Zulu $zmaj.$zmin.$zrest is newer than this script's data)" >> "$PROBLEM_FILE"
+                return 0
+            fi
+            return 1
+        fi
+        # Feature release absent from the Zulu table: fall through to the
+        # OpenJDK comparison below.
+    fi
 
     if ! parse_version "$ver"; then
         printf '%s\n' "$h (unparseable version string \"$ver\")" >> "$PROBLEM_FILE"
@@ -242,7 +334,7 @@ classify() {
     fi
 
     if floor=$(min_patch_for "$FEATURE"); then
-        if [ "$(vnum "$PATCH.$SUB")" -ge "$(vnum "$floor")" ]; then
+        if ver_ge "$REST" "$floor"; then
             return 0
         fi
         return 1
