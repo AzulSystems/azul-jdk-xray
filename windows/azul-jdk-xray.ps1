@@ -108,7 +108,10 @@ function Read-JvmDllVersion([string]$JavaHome) {
         try {
             $text = [System.Text.Encoding]::ASCII.GetString([System.IO.File]::ReadAllBytes($dll))
         } catch { continue }
-        if ($text -match '(?:OpenJDK|GraalVM|Java HotSpot)[^\(\r\n]*VM \(([^\)\r\n]+)\)') {
+        # Vendors put their own token between "VM" and the version, e.g.
+        # "...VM Zulu21.54+107-CA (21.0.13+9)", so the pattern cannot require
+        # "VM (" to be adjacent. Take the last parenthesised group on the line.
+        if ($text -match '(?:OpenJDK|GraalVM|Java HotSpot|Zulu)[^\r\n]*VM[^\r\n]*\(([^\)\r\n]+)\)[^\(\r\n]*(\r|\n|$)') {
             $v = $Matches[1]
             # Legacy HotSpot numbering: 25.302-b08 is Java 8u302, 24.x is 7.
             if ($v -match '^25\.(\d+)-b') { return "1.8.0_$($Matches[1])" }

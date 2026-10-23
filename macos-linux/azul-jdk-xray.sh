@@ -207,8 +207,8 @@ read_version_from_libjvm() {
     for f in "$1"/lib/server/libjvm.* "$1"/lib/client/libjvm.* \
              "$1"/lib/*/server/libjvm.* "$1"/jre/lib/*/server/libjvm.*; do
         [ -f "$f" ] || continue
-        s=$(strings "$f" 2>/dev/null | grep -m1 -E '(OpenJDK|GraalVM|Java HotSpot).*VM \(' 2>/dev/null)
-        [ -n "$s" ] || s=$(LC_ALL=C tr '\0' '\n' < "$f" 2>/dev/null | grep -m1 -E '(OpenJDK|GraalVM|Java HotSpot).*VM \(' 2>/dev/null)
+        s=$(strings "$f" 2>/dev/null | grep -m1 -E '(OpenJDK|GraalVM|Java HotSpot|Zulu).*VM.*\(' 2>/dev/null)
+        [ -n "$s" ] || s=$(LC_ALL=C tr '\0' '\n' < "$f" 2>/dev/null | grep -m1 -E '(OpenJDK|GraalVM|Java HotSpot|Zulu).*VM.*\(' 2>/dev/null)
         [ -n "$s" ] || continue
         v=${s##*\(}
         v=${v%%\)*}
