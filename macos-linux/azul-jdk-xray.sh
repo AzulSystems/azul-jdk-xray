@@ -1,6 +1,6 @@
 #!/bin/sh
 # Azul JDK X-Ray Tool for macOS / Linux.
-# Version 1.2.0
+# Version 1.2.1
 #
 # Copyright (c) 2026, Azul Systems, Inc. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
@@ -16,10 +16,10 @@
 # JDK 26 was dropped from the table with this update: it is non-LTS, its
 # support ended in September 2026, and the October CPU shipped no 26 build.
 # Any 26 install is therefore unpatched and is now reported as outdated.
-TABLE_SOURCE="OpenJDK out-of-band advisory for CVE-2026-91403 (2026-10-21)"
-TABLE_DATE="2026-10-21"   # newest date in TABLE_SOURCE; shown in the banner
+TABLE_SOURCE="Oracle/OpenJDK alert for CVE-2026-114820 (2026-10-24)"
+TABLE_DATE="2026-10-24"   # newest date in TABLE_SOURCE; shown in the banner
 NEXT_UPDATE="2026-11-17 (November CSPU)"
-VERSION_TABLE="8:511 11:33.0.2 17:21.0.2 21:13.0.2 25:5.0.2 27:1.0.2"
+VERSION_TABLE="8:511 11:33.0.3 17:21.0.3 21:13.0.3 25:5.0.3 27:1.0.3"
 
 # ---- ZULU BUILD TABLE - UPDATE WITH EVERY AZUL RELEASE ----
 # Azul ships some fixes without changing the OpenJDK version: the eMudhra fix
@@ -31,10 +31,13 @@ VERSION_TABLE="8:511 11:33.0.2 17:21.0.2 21:13.0.2 25:5.0.2 27:1.0.2"
 # Azul runs two supported tracks per release, PSU and CPU, and the CPU track
 # sits on a lower minor. Both are listed so neither is wrongly flagged.
 # The floor is the CA number; the SA build is one higher and also passes.
-ZULU_TABLE="8:98=0.107,97=0.110 11:92=109,91=112 17:70=111,69=112 21:54=107,53=112 25:38=107,37=114 27:30=107"
+# A floor of 99999 means no fixed build exists on that track yet, so every
+# build on it is outdated. The October 24 release covered the CPU tracks and
+# version 27 only; replace these when the PSU builds ship.
+ZULU_TABLE="8:98=99999,97=0.112,95=0.304 11:92=99999,91=114,89=304 17:70=99999,69=114,67=304 21:54=99999,53=114,51=304 25:38=99999,37=116,35=304 27:30=110"
 # ------------------------------------------------------------
 
-XRAY_VERSION="1.2.0"   # keep in step with the Version line at the top
+XRAY_VERSION="1.2.1"   # keep in step with the Version line at the top
 AZUL_CONTACT="https://www.azul.com/products/core/#contact"
 AZUL_DOWNLOADS="https://www.azul.com/downloads/"
 AZUL_GET_PATCHED="https://azul.com/get-patched"

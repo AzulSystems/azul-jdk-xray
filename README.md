@@ -1,6 +1,6 @@
 # Azul JDK X-Ray Tool
 
-Version: 1.2.0 - October 22, 2026
+Version: 1.2.1 - November 3, 2026
 
 A single-file script that answers one question: **is there a vulnerable Java on this machine?**
 
@@ -87,29 +87,31 @@ wget -qO- https://raw.githubusercontent.com/AzulSystems/azul-jdk-xray/main/macos
 
 Azul, Temurin, Microsoft, Corretto, SapMachine, Liberica and Oracle all build from the same OpenJDK upstream and ship the same version numbers. So the comparison needs only a feature release and a minimum patch level.
 
-_Current table_ (out-of-band fix for CVE-2026-91403, released 2026-10-21):
+_Current table_ (Oracle/OpenJDK alert for CVE-2026-114820, released 2026-10-24):
 
 | Feature release | Minimum acceptable |
 |-----------------|--------------------|
 | 8               | 8u511              |
-| 11              | 11.0.33.0.2        |
-| 17              | 17.0.21.0.2        |
-| 21              | 21.0.13.0.2        |
-| 25              | 25.0.5.0.2         |
-| 27              | 27.0.1.0.2         |
+| 11              | 11.0.33.0.3        |
+| 17              | 17.0.21.0.3        |
+| 21              | 21.0.13.0.3        |
+| 25              | 25.0.5.0.3         |
+| 27              | 27.0.1.0.3         |
 
 Azul Zulu is checked differently. A Zulu install is judged on its Zulu build number, taken from `IMPLEMENTOR_VERSION`.
 
-_Current Zulu builds_ (out-of-band fix, 2026-10-21). Azul runs two supported tracks per release; both are listed so neither is wrongly flagged. The floor is the CA build, and the SA build is one higher.
+_Current Zulu builds_ (out-of-cycle fix for CVE-2026-114820, 2026-10-24). Azul runs several supported tracks per release and each has its own floor.
 
-| Feature release | CPU track | PSU track |
-|-----------------|-----------|-----------|
-| 8               | 8.97.0.110  | 8.98.0.107  |
-| 11              | 11.91.112   | 11.92.109   |
-| 17              | 17.69.112   | 17.70.111   |
-| 21              | 21.53.112   | 21.54.107   |
-| 25              | 25.37.114   | 25.38.107   |
-| 27              | —           | 27.30.107   |
+| Feature release | PSU (CA, free) | CPU (SA)    | July-based CPU (SA) |
+|-----------------|----------------|-------------|---------------------|
+| 8               | *no fix yet*   | 8.97.0.112  | 8.95.0.304          |
+| 11              | *no fix yet*   | 11.91.114   | 11.89.304           |
+| 17              | *no fix yet*   | 17.69.114   | 17.67.304           |
+| 21              | *no fix yet*   | 21.53.114   | 21.51.304           |
+| 25              | *no fix yet*   | 25.37.116   | 25.35.304           |
+| 27              | 27.30.110      | —           | —                   |
+
+The free CA builds for 25 and earlier have no fixed release yet, so every build on those tracks is reported as outdated.
 
 A feature release **not** in the table is handled by comparing it to the newest
 release the table knows about:
