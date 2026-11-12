@@ -1,5 +1,5 @@
 # Azul JDK X-Ray Tool for Windows.
-# Version 1.2.1
+# Version 1.2.2
 #
 # Copyright (c) 2026, Azul Systems, Inc. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
@@ -18,7 +18,7 @@ $ProgressPreference    = 'SilentlyContinue'
 # JDK 26 was dropped from the table with this update: it is non-LTS, its
 # support ended in September 2026, and the October CPU shipped no 26 build.
 # Any 26 install is therefore unpatched and is now reported as outdated.
-$TableSource = 'Oracle/OpenJDK alert for CVE-2026-114820 (2026-10-24)'
+$TableSource = 'CVE-2026-114820 + Azul eMudhra CA cert fix out-of-cycle (2026-10-24)'
 $TableDate   = '2026-10-24'   # newest date in TableSource; shown in the banner
 $NextUpdate  = '2026-11-17 (November CSPU)'
 $MinPatch    = @{ 8 = '511'; 11 = '33.0.3'; 17 = '21.0.3'; 21 = '13.0.3'
@@ -34,15 +34,16 @@ $MinPatch    = @{ 8 = '511'; 11 = '33.0.3'; 17 = '21.0.3'; 21 = '13.0.3'
 # sits on a lower minor. Both are listed so neither is wrongly flagged.
 # The floor is the CA number; the SA build is one higher and also passes.
 # A floor of 99999 means no fixed build exists on that track yet, so every
-# build on it is outdated. The October 24 release covered the CPU tracks and
-# version 27 only; replace these when the PSU builds ship.
+# build on it is outdated. Both CPU and PSU tracks are now updated for the
+# October 24, 2026 out-of-cycle releases (CVE-2026-114820 and eMudhra CA
+# certificate fix).
 $ZuluTable = @{
-    8  = @{ 98 = '99999'; 97 = '0.112'; 95 = '0.304' }
-    11 = @{ 92 = '99999'; 91 = '114';   89 = '304'   }
-    17 = @{ 70 = '99999'; 69 = '114';   67 = '304'   }
-    21 = @{ 54 = '99999'; 53 = '114';   51 = '304'   }
-    25 = @{ 38 = '99999'; 37 = '116';   35 = '304'   }
-    27 = @{ 30 = '110' }
+    8  = @{ 98 = '0.111'; 97 = '0.112'; 95 = '0.304' }
+    11 = @{ 92 = '113';   91 = '114';   89 = '304'   }
+    17 = @{ 70 = '113';   69 = '114';   67 = '304'   }
+    21 = @{ 54 = '109';   53 = '114';   51 = '304'   }
+    25 = @{ 38 = '109';   37 = '116';   35 = '304'   }
+    27 = @{ 30 = '109' }
 }
 
 # ------------------------------------------------------------
@@ -51,7 +52,7 @@ $NewestKnown  = ($MinPatch.Keys | Measure-Object -Maximum).Maximum
 $KnownDepth   = 5        # depth limit for the standard-location pass
 $MaxDirs      = 400000   # backstop against a pathological filesystem
 
-$XRayVersion   = '1.2.1'   # keep in step with the Version line at the top
+$XRayVersion   = '1.2.2'   # keep in step with the Version line at the top
 $AzulContact        = 'https://www.azul.com/products/core/#contact'
 $AzulDownloads      = 'https://www.azul.com/downloads/'
 $AzulGetPatched     = 'https://azul.com/get-patched'

@@ -1,6 +1,6 @@
 # Azul JDK X-Ray Tool
 
-Version: 1.2.1 - November 3, 2026
+Version: 1.2.2 - November 12, 2026
 
 A single-file script that answers one question: **is there a vulnerable Java on this machine?**
 
@@ -87,7 +87,7 @@ wget -qO- https://raw.githubusercontent.com/AzulSystems/azul-jdk-xray/main/macos
 
 Azul, Temurin, Microsoft, Corretto, SapMachine, Liberica and Oracle all build from the same OpenJDK upstream and ship the same version numbers. So the comparison needs only a feature release and a minimum patch level.
 
-_Current table_ (Oracle/OpenJDK alert for CVE-2026-114820, released 2026-10-24):
+_Current table_ (CVE-2026-114820 + Azul eMudhra CA cert fix out-of-cycle, released 2026-10-24):
 
 | Feature release | Minimum acceptable |
 |-----------------|--------------------|
@@ -100,18 +100,16 @@ _Current table_ (Oracle/OpenJDK alert for CVE-2026-114820, released 2026-10-24):
 
 Azul Zulu is checked differently. A Zulu install is judged on its Zulu build number, taken from `IMPLEMENTOR_VERSION`.
 
-_Current Zulu builds_ (out-of-cycle fix for CVE-2026-114820, 2026-10-24). Azul runs several supported tracks per release and each has its own floor.
+_Current Zulu builds_ (CVE-2026-114820 + eMudhra CA cert fix out-of-cycle, 2026-10-24). Azul runs several supported tracks per release and each has its own floor.
 
 | Feature release | PSU (CA, free) | CPU (SA)    | July-based CPU (SA) |
 |-----------------|----------------|-------------|---------------------|
-| 8               | *no fix yet*   | 8.97.0.112  | 8.95.0.304          |
-| 11              | *no fix yet*   | 11.91.114   | 11.89.304           |
-| 17              | *no fix yet*   | 17.69.114   | 17.67.304           |
-| 21              | *no fix yet*   | 21.53.114   | 21.51.304           |
-| 25              | *no fix yet*   | 25.37.116   | 25.35.304           |
-| 27              | 27.30.110      | —           | —                   |
-
-The free CA builds for 25 and earlier have no fixed release yet, so every build on those tracks is reported as outdated.
+| 8               | 8.98.0.111     | 8.97.0.112  | 8.95.0.304          |
+| 11              | 11.92.113      | 11.91.114   | 11.89.304           |
+| 17              | 17.70.113      | 17.69.114   | 17.67.304           |
+| 21              | 21.54.109      | 21.53.114   | 21.51.304           |
+| 25              | 25.38.109      | 25.37.116   | 25.35.304           |
+| 27              | 27.30.109      | —           | —                   |
 
 A feature release **not** in the table is handled by comparing it to the newest
 release the table knows about:
