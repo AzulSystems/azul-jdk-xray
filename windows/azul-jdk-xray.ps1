@@ -1,5 +1,5 @@
 # Azul JDK X-Ray Tool for Windows.
-# Version 1.2.2
+# Version 1.2.3
 #
 # Copyright (c) 2026, Azul Systems, Inc. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
@@ -15,14 +15,14 @@ $ProgressPreference    = 'SilentlyContinue'
 # A patch level may carry a CSPU revision: '12.1' means 21.0.12.1, which ranks
 # above 21.0.12. OpenJDK ships CSPUs between quarterly CPUs, so this table
 # goes stale monthly, not quarterly.
-# JDK 26 was dropped from the table with this update: it is non-LTS, its
-# support ended in September 2026, and the October CPU shipped no 26 build.
-# Any 26 install is therefore unpatched and is now reported as outdated.
-$TableSource = 'CVE-2026-114820 + Azul eMudhra CA cert fix out-of-cycle (2026-10-24)'
-$TableDate   = '2026-10-24'   # newest date in TableSource; shown in the banner
-$NextUpdate  = '2026-11-17 (November CSPU)'
-$MinPatch    = @{ 8 = '511'; 11 = '33.0.3'; 17 = '21.0.3'; 21 = '13.0.3'
-                  25 = '5.0.3'; 27 = '1.0.3' }
+# JDK 26 was dropped from the table: it is non-LTS, its support ended in
+# September 2026, and no 26 build was shipped for any CPU or CSPU since.
+# Any 26 install is therefore unpatched and is reported as outdated.
+$TableSource = 'Oracle/OpenJDK November 2026 CSPU, 11 CVEs incl. CVE-2026-114938 (2026-11-17)'
+$TableDate   = '2026-11-17'   # newest date in TableSource; shown in the banner
+$NextUpdate  = '2026-12-15 (December CSPU)'
+$MinPatch    = @{ 8 = '513'; 11 = '33.1'; 17 = '21.1'; 21 = '13.1'
+                  25 = '5.1'; 27 = '1.1' }
 
 # ---- ZULU BUILD TABLE - UPDATE WITH EVERY AZUL RELEASE ----
 # Azul ships some fixes without changing the OpenJDK version: the eMudhra fix
@@ -34,16 +34,14 @@ $MinPatch    = @{ 8 = '511'; 11 = '33.0.3'; 17 = '21.0.3'; 21 = '13.0.3'
 # sits on a lower minor. Both are listed so neither is wrongly flagged.
 # The floor is the CA number; the SA build is one higher and also passes.
 # A floor of 99999 means no fixed build exists on that track yet, so every
-# build on it is outdated. Both CPU and PSU tracks are now updated for the
-# October 24, 2026 out-of-cycle releases (CVE-2026-114820 and eMudhra CA
-# certificate fix).
+# build on it is outdated.
 $ZuluTable = @{
-    8  = @{ 98 = '0.111'; 97 = '0.112'; 95 = '0.304' }
-    11 = @{ 92 = '113';   91 = '114';   89 = '304'   }
-    17 = @{ 70 = '113';   69 = '114';   67 = '304'   }
-    21 = @{ 54 = '109';   53 = '114';   51 = '304'   }
-    25 = @{ 38 = '109';   37 = '116';   35 = '304'   }
-    27 = @{ 30 = '109' }
+    8  = @{ 98 = '0.201'; 97 = '0.201'; 95 = '0.304' }
+    11 = @{ 92 = '201';   91 = '201';   89 = '304'   }
+    17 = @{ 70 = '201';   69 = '203';   67 = '304'   }
+    21 = @{ 54 = '201';   53 = '201';   51 = '304'   }
+    25 = @{ 38 = '201';   37 = '201';   35 = '304'   }
+    27 = @{ 30 = '201' }
 }
 
 # ------------------------------------------------------------
@@ -52,7 +50,7 @@ $NewestKnown  = ($MinPatch.Keys | Measure-Object -Maximum).Maximum
 $KnownDepth   = 5        # depth limit for the standard-location pass
 $MaxDirs      = 400000   # backstop against a pathological filesystem
 
-$XRayVersion   = '1.2.2'   # keep in step with the Version line at the top
+$XRayVersion   = '1.2.3'   # keep in step with the Version line at the top
 $AzulContact        = 'https://www.azul.com/products/core/#contact'
 $AzulDownloads      = 'https://www.azul.com/downloads/'
 $AzulGetPatched     = 'https://azul.com/get-patched'
